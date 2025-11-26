@@ -1,6 +1,7 @@
 ﻿using Core.Domain.Entities;
+using Core.Domain.ValueObjects;
+using Infrastructure.Security;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Persistence.Db;
 
@@ -10,16 +11,10 @@ public class DbContext
     public Database Database { get; private set; } = null!;
     public Container ProductContainer { get; private set; } = null!;
 
-    public DbContext(IConfiguration configuration)
+    public DbContext(KeyVaultContext keyVault)
     {
-        var connectionString = configuration.GetConnectionString("CosmosDb");
-
-        if (connectionString == null)
-        {
-            throw new ArgumentException("CosmosDb value is missing or not configured.");
-        }
-
-        Client = new(connectionString: connectionString);
+        var cosmosSecret = new CosmosSecret(keyVault.CosmosSecret.Value);
+        Client = new(connectionString: cosmosSecret.Value);
     }
 
     public async Task InitializeAsync()

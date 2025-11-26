@@ -2,7 +2,6 @@
 using Core.Domain.Requests;
 using Core.Domain.Responses;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 
 namespace Api.Controllers;
 
@@ -66,4 +65,5 @@ public class ProductsController : ControllerBase
         await _deleteProductUseCase.ExecuteAsync(id);
         return Ok(true);
     }
+
 }
