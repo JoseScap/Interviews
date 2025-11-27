@@ -10,22 +10,24 @@ This solution showcases a small but end-to-end product catalog built on top of .
 
 The domain centers around `Product`, which includes `Id`, `Category` (used as the Cosmos partition key), `Name`, `Price`, and `Description`. DTOs live under `Core/Domain/Requests` and `Core/Domain/Responses`, while `ProductExtensions` covers mapping logic and update merging.
 
+Catalog assets are modeled via `CatalogImage`, which stores the generated blob name, the public blob URI, and the product category partition key. The associated DTOs (`CatalogImageRequests`, `CatalogImageResponses`) and mapping helpers (`CatalogImageExtensions`) keep file metadata inside the core layer so that controllers only orchestrate the HTTP surface.
+
 ## Application Layer
 
 The application layer follows the ports-and-adapters style:
 
 - Driving ports (`Core/Application/Ports/Driving`): use case contracts consumed by the API controllers (products and catalog/storage).
 - Driven ports (`Core/Application/Ports/Driven`): abstractions for adapters (Cosmos DB repositories, storage services, etc.) implemented in the infrastructure layer.
-- Use case implementations (`Core/Application/UseCases/*UseCases.cs`) coordinate validation, mapping, repository calls, blob uploads, and partition-key-aware updates/deletes.
+- Use case implementations (`Core/Application/UseCases/*UseCases.cs`) coordinate validation, mapping, repository calls, blob uploads, and partition-key-aware updates/deletes. File handling now lives entirely inside `CreateCatalogImageUseCase`, which validates uploaded `IFormFile`s (non-empty payloads, inferred content type) and streams them to the storage adapter before persisting metadata.
 
 ## Infrastructure Layer
 
 - `Infrastructure/Persistence/Db/DbContext.cs` encapsulates the Cosmos DB client, initializes the database plus the `Product` container (partitioned by `/Category`), and exposes the `CosmosClient`, `Database`, and `Container`.
-- `Infrastructure/Persistence/Repository/ProductRepository.cs` implements `IProductRepository` with Cosmos DB SDK queries for CRUD, including helper operations to list by id and handle partition-aware deletes.
+- `Infrastructure/Persistence/Repository` hosts the Cosmos-backed repositories (e.g., products, catalog images), each implementing its respective port and handling partition-aware CRUD via the container clients surfaced by `DbContext`.
 - `Infrastructure/Configuration/ConfigurationContext.cs` centralizes strongly typed access to the `Azure` section in configuration (Key Vault URI, Storage account URI, container names, and max sizes).
 - `Infrastructure/Security/KeyVaultContext.cs` instantiates a `SecretClient` using `DefaultAzureCredential` to retrieve secrets (e.g., the Cosmos connection string) at runtime.
 - `Infrastructure/Storage/StorageContext.cs` materializes Azure Blob Storage containers (Catalog and Invoices) using the configuration above, enforces max size metadata, and exposes typed clients to the rest of the app.
-- `Infrastructure/Storage/StorageService.cs` provides the concrete `IStorageService` implementation that uploads streams into blob containers.
+- `Infrastructure/Storage/CatalogImageStorageService.cs` implements `ICatalogImageStorageService`, checking max payload size, normalizing HTTP headers, and uploading/deleting blobs through the strongly typed container clients.
 
 ## API Layer
 
@@ -33,11 +35,11 @@ The application layer follows the ports-and-adapters style:
 
 - Standard ASP.NET Core services + Swagger.
 - Singleton infrastructure services: `ConfigurationContext`, `KeyVaultContext`, `StorageContext`, and `DbContext` (the latter bootstraps Cosmos on startup).
-- Scoped registrations for repositories, product use cases, and the `UploadProductImageUseCase` + storage service.
+- Scoped registrations for repositories, product use cases, and the catalog-image use cases plus storage service adapter.
 
 `Api/Controllers/ProductsController.cs` handles the product CRUD surface, returning `BaseProductResponse` DTOs and relying on request validation to guard inputs.
 
-`Api/Controllers/CatalogController.cs` provides catalog media operations (upload, list, delete) and delegates to the storage-focused use cases, which coordinate with Blob Storage through `IStorageService`.
+`Api/Controllers/CatalogImageController.cs` is the multipart/form-data entry point for catalog media. It delegates to the dedicated use cases (`Create`, `ListAll`, `ListById`, `Delete`) so that all blob validation, uploads, and metadata persistence stay inside the application layer.
 
 ## Running Locally
 
@@ -53,7 +55,7 @@ The application layer follows the ports-and-adapters style:
    ```powershell
    dotnet run --project Api/Api.csproj
    ```
-5. **Explore REST surface**: Navigate to `https://localhost:{port}/swagger` to test each endpoint.
+5. **Explore REST surface**: Navigate to `https://localhost:{port}/swagger` to test each endpoint (including the catalog-image upload, which accepts `multipart/form-data` with `file` + `productCategory` form fields).
 
 ## Testing & Extensibility
 
