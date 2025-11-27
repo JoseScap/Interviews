@@ -2,6 +2,6 @@ using Core.Domain.Entities;
 
 namespace Core.Application.Ports.Driven;
 
-public interface IProductRepository : IBaseRepository<Product>
+public interface ICatalogImageRepository : IBaseRepository<CatalogImage>
 {
 }

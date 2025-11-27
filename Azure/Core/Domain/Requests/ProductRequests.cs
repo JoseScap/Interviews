@@ -7,7 +7,7 @@ public class CreateProductRequest
 {
     [Required]
     [MaxLength(32)]
-    public string Category { get; set; } = string.Empty;
+    public string ProductCategory { get; set; } = string.Empty;
     [Required]
     [MaxLength(64)]
     public string Name { get; set; } = string.Empty;
@@ -22,7 +22,7 @@ public class CreateProductRequest
 public class UpdateProductRequest
 {
     [MaxLength(32)]
-    public string? Category { get; set; } = string.Empty;
+    public string? ProductCategory { get; set; } = string.Empty;
     [MaxLength(64)]
     public string? Name { get; set; } = string.Empty;
     [Range(0, double.MaxValue)]

@@ -2,11 +2,9 @@
 
 namespace Core.Domain.Entities;
 
-public class Product
+public class Product : BaseEntity
 {
-    [JsonProperty("id")]
-    public string Id { get; set; } = Guid.NewGuid().ToString();
-    public string Category { get; set; } = string.Empty;
+    public string ProductCategory { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public double Price { get; set; }
     public string Description { get; set; } = string.Empty;
@@ -16,25 +14,26 @@ public class Product
     }
 
     public Product(
-        string category, string name, double price,
+        string productCategory, string name, double price,
         string description)
     {
-        Category = category;
+        ProductCategory = productCategory;
         Name = name;
         Price = price;
         Description = description;
     }
 
     public Product(
-        string id, string category, string name,
+        string id, string productCategory, string name,
         double price, string description)
     {
         Id = Guid.Parse(id).ToString();
-        Category = category;
+        ProductCategory = productCategory;
         Name = name;
         Price = price;
         Description = description;
     }
 
-    public static string PartitionKeyPath => $"/{nameof(Category)}";
+    public static string PartitionKeyPath => $"/{nameof(ProductCategory)}";
+    public static string ContainerName => $"{nameof(Product)}s";
 }

@@ -62,7 +62,7 @@ public sealed class AzureStorageContainers
             throw new ArgumentException("Azure:StorageContainers section is missing.");
         }
 
-        Catalog = CreateDefinition(configuration, "Catalog", "CatalogMaxKbSize");
+        Catalog = CreateDefinition(configuration, "CatalogImages", "CatalogImagesMaxKbSize");
         Invoices = CreateDefinition(configuration, "Invoices", "InvoicesMaxKbSize");
     }
 

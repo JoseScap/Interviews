@@ -4,15 +4,11 @@ namespace Core.Application.Ports.Driven;
 
 public interface IStorageService
 {
-    Task<BaseCatalogResponse> UploadAsync(
+    Task<(string blobName, string blobUrl)> UploadAsync(
         string containerName,
         Stream content,
         string blobName,
         string contentType,
-        CancellationToken cancellationToken = default);
-
-    Task<List<BaseCatalogResponse>> GetAllBlobsAsync(
-        string containerName,
         CancellationToken cancellationToken = default);
 
     Task DeleteAsync(
