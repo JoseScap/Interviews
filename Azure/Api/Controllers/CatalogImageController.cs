@@ -12,14 +12,20 @@ namespace Api.Controllers;
 public class CatalogImageController : ControllerBase
 {
     private readonly ICreateCatalogImageUseCase _createCatalogImageUseCase;
-    private readonly StorageContext _storageContext;
+    private readonly IListAllCatalogImagesUseCase _listAllCatalogImagesUseCase;
+    private readonly IListCatalogImageByIdUseCase _listCatalogImageByIdUseCase;
+    private readonly IDeleteCatalogImageUseCase _deleteCatalogImageUseCase;
 
     public CatalogImageController(
         ICreateCatalogImageUseCase createCatalogImageUseCase,
-        StorageContext storageContext)
+        IListAllCatalogImagesUseCase listAllCatalogImagesUseCase,
+        IListCatalogImageByIdUseCase listCatalogImageByIdUseCase,
+        IDeleteCatalogImageUseCase deleteCatalogImageUseCase)
     {
         _createCatalogImageUseCase = createCatalogImageUseCase;
-        _storageContext = storageContext;
+        _listAllCatalogImagesUseCase = listAllCatalogImagesUseCase;
+        _listCatalogImageByIdUseCase = listCatalogImageByIdUseCase;
+        _deleteCatalogImageUseCase = deleteCatalogImageUseCase;
     }
 
     [HttpPost]
@@ -30,11 +36,30 @@ public class CatalogImageController : ControllerBase
     {
         var response = await _createCatalogImageUseCase.ExecuteAsync(
             request,
-            _storageContext.CatalogMaxSizeInBytes,
-            _storageContext.Catalog.Name,
             cancellationToken);
 
         return Ok(response);
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<List<BaseCatalogImageResponse>>> ListAll()
+    {
+        var response = await _listAllCatalogImagesUseCase.ExecuteAsync();
+        return Ok(response);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<BaseCatalogImageResponse>> ListById(Guid id)
+    {
+        var response = await _listCatalogImageByIdUseCase.ExecuteAsync(id);
+        return Ok(response);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await _deleteCatalogImageUseCase.ExecuteAsync(id, cancellationToken);
+        return Ok();
     }
 }
 

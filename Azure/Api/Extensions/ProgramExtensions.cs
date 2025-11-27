@@ -6,6 +6,7 @@ using Infrastructure.Persistence.Db;
 using Infrastructure.Persistence.Repository;
 using Infrastructure.Security;
 using Infrastructure.Storage;
+using Infrastructure.Storage.Context;
 
 namespace Api.Extensions;
 
@@ -27,7 +28,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddSingleton<DbContext>();
         builder.Services.AddScoped<ICatalogImageRepository, CatalogImageRepository>();
         builder.Services.AddScoped<IProductRepository, ProductRepository>();
-        builder.Services.AddScoped<IStorageService, StorageService>();
+        builder.Services.AddScoped<ICatalogImageStorageService, CatalogImageStorageService>();
         return builder;
     }
 
@@ -41,6 +42,9 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddScoped<IDeleteProductUseCase, DeleteProductUseCase>();
         // Catalog image use cases
         builder.Services.AddScoped<ICreateCatalogImageUseCase, CreateCatalogImageUseCase>();
+        builder.Services.AddScoped<IListAllCatalogImagesUseCase, ListAllCatalogImagesUseCase>();
+        builder.Services.AddScoped<IListCatalogImageByIdUseCase, ListCatalogImageByIdUseCase>();
+        builder.Services.AddScoped<IDeleteCatalogImageUseCase, DeleteCatalogImageUseCase>();
         return builder;
     }
 }
