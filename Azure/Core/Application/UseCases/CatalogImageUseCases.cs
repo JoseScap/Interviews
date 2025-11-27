@@ -1,6 +1,7 @@
 using Core.Application.Ports.Driven;
 using Core.Application.Ports.Driving;
 using Core.Domain.Entities;
+using Core.Domain.Exceptions;
 using Core.Domain.Extensions;
 using Core.Domain.Requests;
 using Core.Domain.Responses;
@@ -26,7 +27,7 @@ public class CreateCatalogImageUseCase: ICreateCatalogImageUseCase
 
         if (request.File == null || request.File.Length == 0)
         {
-            throw new ArgumentException("File cannot be empty.", nameof(request.File));
+            throw ApiException.BadRequest("File cannot be empty.");
         }
 
         await using var stream = request.File.OpenReadStream();
@@ -78,7 +79,7 @@ public class ListCatalogImageByIdUseCase: IListCatalogImageByIdUseCase
         var entity = await _catalogImageRepository.ListByIdAsync(id);
         if (entity == null)
         {
-            throw new Exception("Entity with id {id} not found");
+            throw ApiException.NotFound($"Catalog image with id {id} not found");
         }
         return entity.MapToBaseResponse();
     }
@@ -100,7 +101,7 @@ public class DeleteCatalogImageUseCase: IDeleteCatalogImageUseCase
         var entity = await _catalogImageRepository.ListByIdAsync(id);
         if (entity == null)
         {
-            throw new Exception("Entity with id {id} not found");
+            throw ApiException.NotFound($"Catalog image with id {id} not found");
         }
         await _catalogImageStorageService.DeleteAsync(entity.BlobName, cancellationToken);
         await _catalogImageRepository.DeleteAsync(entity);

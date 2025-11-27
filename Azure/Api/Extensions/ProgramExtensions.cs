@@ -1,4 +1,5 @@
-﻿using Core.Application.Ports.Driven;
+﻿using Api.Middleware;
+using Core.Application.Ports.Driven;
 using Core.Application.Ports.Driving;
 using Core.Application.UseCases;
 using Infrastructure.Configuration;
@@ -61,6 +62,8 @@ public static class WebApplicationExtensions
 
     public static WebApplication UseConfiguredPipeline(this WebApplication app)
     {
+        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
