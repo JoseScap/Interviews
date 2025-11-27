@@ -7,16 +7,16 @@ namespace Infrastructure.Persistence.Repository;
 
 public class CatalogImageRepository : ICatalogImageRepository
 {
-    private readonly DbContext _dbContext;
+    private readonly Container _container;
 
     public CatalogImageRepository(DbContext dbContext)
     {
-        _dbContext = dbContext;
+        _container = dbContext.CatalogImageContainer;
     }
 
     public async Task<CatalogImage> SaveAsync(CatalogImage entity)
     {
-        var response = await _dbContext.CatalogImageContainer.UpsertItemAsync(
+        var response = await _container.UpsertItemAsync(
             item: entity,
             partitionKey: new(entity.ProductCategory)
         );
@@ -26,7 +26,7 @@ public class CatalogImageRepository : ICatalogImageRepository
     public async Task<List<CatalogImage>> ListAllAsync()
     {
         var query = new QueryDefinition("SELECT * FROM c");
-        var iterator = _dbContext.CatalogImageContainer.GetItemQueryIterator<CatalogImage>(query);
+        var iterator = _container.GetItemQueryIterator<CatalogImage>(query);
         
         var results = new List<CatalogImage>();
         while (iterator.HasMoreResults)
@@ -42,7 +42,7 @@ public class CatalogImageRepository : ICatalogImageRepository
     {
         var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id")
             .WithParameter("@id", id);
-        var iterator = _dbContext.CatalogImageContainer.GetItemQueryIterator<CatalogImage>(query);
+        var iterator = _container.GetItemQueryIterator<CatalogImage>(query);
         
         CatalogImage? result = null;
 
@@ -60,7 +60,7 @@ public class CatalogImageRepository : ICatalogImageRepository
         var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id AND c.category = @category")
             .WithParameter("@id", id)
             .WithParameter("@category", category);
-        var iterator = _dbContext.CatalogImageContainer.GetItemQueryIterator<CatalogImage>(query);
+        var iterator = _container.GetItemQueryIterator<CatalogImage>(query);
         
         CatalogImage? result = null;
 
@@ -75,7 +75,7 @@ public class CatalogImageRepository : ICatalogImageRepository
 
     public async Task<CatalogImage> UpdateAsync(CatalogImage entity)
     {
-        var response = await _dbContext.CatalogImageContainer.UpsertItemAsync(
+        var response = await _container.UpsertItemAsync(
             item: entity,
             partitionKey: new(entity.ProductCategory)
         );
@@ -84,7 +84,7 @@ public class CatalogImageRepository : ICatalogImageRepository
 
     public async Task DeleteAsync(CatalogImage entity)
     {
-        await _dbContext.CatalogImageContainer.DeleteItemAsync<CatalogImage>(
+        await _container.DeleteItemAsync<CatalogImage>(
             id: entity.Id,
             partitionKey: new(entity.ProductCategory)
         );

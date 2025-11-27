@@ -7,16 +7,16 @@ namespace Infrastructure.Persistence.Repository;
 
 public class ProductRepository : IProductRepository
 {
-    private readonly DbContext _dbContext;
+    private readonly Container _container;
 
     public ProductRepository(DbContext dbContext)
     {
-        _dbContext = dbContext;
+        _container = dbContext.ProductContainer;
     }
 
     public async Task<Product> SaveAsync(Product entity)
     {
-        var response = await _dbContext.ProductContainer.UpsertItemAsync(
+        var response = await _container.UpsertItemAsync(
             item: entity,
             partitionKey: new(entity.ProductCategory)
         );
@@ -26,7 +26,7 @@ public class ProductRepository : IProductRepository
     public async Task<List<Product>> ListAllAsync()
     {
         var query = new QueryDefinition("SELECT * FROM c");
-        var iterator = _dbContext.ProductContainer.GetItemQueryIterator<Product>(query);
+        var iterator = _container.GetItemQueryIterator<Product>(query);
         
         var results = new List<Product>();
         while (iterator.HasMoreResults)
@@ -42,7 +42,7 @@ public class ProductRepository : IProductRepository
     {
         var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id")
             .WithParameter("@id", id);
-        var iterator = _dbContext.ProductContainer.GetItemQueryIterator<Product>(query);
+        var iterator = _container.GetItemQueryIterator<Product>(query);
         
         Product? result = null;
 
@@ -60,7 +60,7 @@ public class ProductRepository : IProductRepository
         var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id AND c.category = @category")
             .WithParameter("@id", id)
             .WithParameter("@category", category);
-        var iterator = _dbContext.ProductContainer.GetItemQueryIterator<Product>(query);
+        var iterator = _container.GetItemQueryIterator<Product>(query);
         
         Product? result = null;
 
@@ -75,7 +75,7 @@ public class ProductRepository : IProductRepository
 
     public async Task<Product> UpdateAsync(Product entity)
     {
-        var response = await _dbContext.ProductContainer.UpsertItemAsync(
+        var response = await _container.UpsertItemAsync(
             item: entity,
             partitionKey: new(entity.ProductCategory)
         );
@@ -84,7 +84,7 @@ public class ProductRepository : IProductRepository
 
     public async Task DeleteAsync(Product entity)
     {
-        await _dbContext.ProductContainer.DeleteItemAsync<Product>(
+        await _container.DeleteItemAsync<Product>(
             id: entity.Id,
             partitionKey: new(entity.ProductCategory)
         );

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Azure.Identity;
+﻿using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Core.Domain.ValueObjects;
 using Infrastructure.Configuration;
 
-namespace Infrastructure.Storage;
+namespace Infrastructure.Storage.Context;
 
 public class StorageContext
 {
@@ -14,9 +12,9 @@ public class StorageContext
     private readonly AzureStorageContainers _azureStorageContainers;
     private readonly IReadOnlyDictionary<string, BlobContainerClient> _namedContainers;
 
-    public BlobContainerClient Catalog => _namedContainers[_azureStorageContainers.Catalog.Name];
+    public BlobContainerClient CatalogImages => _namedContainers[_azureStorageContainers.CatalogImages.Name];
     public BlobContainerClient Invoices => _namedContainers[_azureStorageContainers.Invoices.Name];
-    public long CatalogMaxSizeInBytes => _azureStorageContainers.Catalog.MaxSizeInBytes;
+    public long CatalogImagesMaxSizeInBytes => _azureStorageContainers.CatalogImages.MaxSizeInBytes;
     public long InvoicesMaxSizeInBytes => _azureStorageContainers.Invoices.MaxSizeInBytes;
 
     public StorageContext(ConfigurationContext configurationContext)
@@ -33,7 +31,7 @@ public class StorageContext
 
         _namedContainers = new Dictionary<string, BlobContainerClient>(StringComparer.OrdinalIgnoreCase)
         {
-            [_azureStorageContainers.Catalog.Name] = EnsureContainer(_azureStorageContainers.Catalog.Name, PublicAccessType.Blob),
+            [_azureStorageContainers.CatalogImages.Name] = EnsureContainer(_azureStorageContainers.CatalogImages.Name, PublicAccessType.Blob),
             [_azureStorageContainers.Invoices.Name] = EnsureContainer(_azureStorageContainers.Invoices.Name, PublicAccessType.Blob)
         };
     }
