@@ -25,6 +25,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddSingleton<KeyVaultContext>();
         builder.Services.AddSingleton<StorageContext>();
         builder.Services.AddSingleton<DbContext>();
+        builder.Services.AddScoped<ICatalogImageRepository, CatalogImageRepository>();
         builder.Services.AddScoped<IProductRepository, ProductRepository>();
         builder.Services.AddScoped<IStorageService, StorageService>();
         return builder;
@@ -38,10 +39,8 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddScoped<IListProductByIdUseCase, ListProductByIdUseCase>();
         builder.Services.AddScoped<IUpdateProductUseCase, UpdateProductUseCase>();
         builder.Services.AddScoped<IDeleteProductUseCase, DeleteProductUseCase>();
-        // Catalog use cases
-        builder.Services.AddScoped<IUploadCatalogBlobUseCase, UploadCatalogBlobUseCase>();
-        builder.Services.AddScoped<IGetAllCatalogBlobsUseCase, GetAllCatalogBlobsUseCase>();
-        builder.Services.AddScoped<IDeleteCatalogBlobUseCase, DeleteCatalogBlobUseCase>();
+        // Catalog image use cases
+        builder.Services.AddScoped<ICreateCatalogImageUseCase, CreateCatalogImageUseCase>();
         return builder;
     }
 }
