@@ -50,7 +50,7 @@ public sealed class AzureConfiguration
 
 public sealed class AzureStorageContainers
 {
-    public AzureStorageContainerDefinition Catalog { get; }
+    public AzureStorageContainerDefinition CatalogImages { get; }
     public AzureStorageContainerDefinition Invoices { get; }
 
     public AzureStorageContainers(IConfigurationSection configuration)
@@ -62,7 +62,7 @@ public sealed class AzureStorageContainers
             throw new ArgumentException("Azure:StorageContainers section is missing.");
         }
 
-        Catalog = CreateDefinition(configuration, "CatalogImages", "CatalogImagesMaxKbSize");
+        CatalogImages = CreateDefinition(configuration, "CatalogImages", "CatalogImagesMaxKbSize");
         Invoices = CreateDefinition(configuration, "Invoices", "InvoicesMaxKbSize");
     }
 

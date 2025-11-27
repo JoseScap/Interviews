@@ -10,18 +10,16 @@ namespace Core.Application.UseCases;
 public class CreateCatalogImageUseCase: ICreateCatalogImageUseCase
 {
     private readonly ICatalogImageRepository _catalogImageRepository;
-    private readonly IStorageService _storageService;
+    private readonly ICatalogImageStorageService _catalogImageStorageService;
 
-    public CreateCatalogImageUseCase(ICatalogImageRepository catalogImageRepository, IStorageService storageService)
+    public CreateCatalogImageUseCase(ICatalogImageRepository catalogImageRepository, ICatalogImageStorageService catalogImageStorageService)
     {
         _catalogImageRepository = catalogImageRepository;
-        _storageService = storageService;
+        _catalogImageStorageService = catalogImageStorageService;
     }
 
     public async Task<BaseCatalogImageResponse> ExecuteAsync(
         CreateCatalogImageRequest request,
-        long maxAllowedSizeInBytes,
-        string containerName,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -31,28 +29,80 @@ public class CreateCatalogImageUseCase: ICreateCatalogImageUseCase
             throw new ArgumentException("File cannot be empty.", nameof(request.File));
         }
 
-        if (request.File.Length > maxAllowedSizeInBytes)
-        {
-            var maxKb = maxAllowedSizeInBytes / 1024;
-            var currentKb = request.File.Length / 1024;
-            throw new ArgumentException($"File exceeds the maximum allowed size of {maxKb} KB. Current size: {currentKb} KB.");
-        }
-
         await using var stream = request.File.OpenReadStream();
-        var blobName = $"{Guid.NewGuid()}-{request.File.FileName}";
+        var id = Guid.NewGuid();
+        var blobName = $"{id}-{request.File.FileName}";
         var contentType = string.IsNullOrWhiteSpace(request.File.ContentType)
             ? "application/octet-stream"
             : request.File.ContentType;
 
-        var (uploadedBlobName, uploadedBlobUrl) = await _storageService.UploadAsync(
-            containerName,
+        var (uploadedBlobName, uploadedBlobUrl) = await _catalogImageStorageService.UploadAsync(
             stream,
             blobName,
             contentType,
             cancellationToken);
 
-        var entity = new CatalogImage(uploadedBlobName, uploadedBlobUrl, request.ProductCategory);
+        var entity = new CatalogImage(id.ToString(), uploadedBlobName, uploadedBlobUrl, request.ProductCategory);
         var savedEntity = await _catalogImageRepository.SaveAsync(entity);
         return savedEntity.MapToBaseResponse();
+    }
+}
+
+public class ListAllCatalogImagesUseCase: IListAllCatalogImagesUseCase
+{
+    private readonly ICatalogImageRepository _catalogImageRepository;
+
+    public ListAllCatalogImagesUseCase(ICatalogImageRepository catalogImageRepository)
+    {
+        _catalogImageRepository = catalogImageRepository;
+    }
+
+    public async Task<List<BaseCatalogImageResponse>> ExecuteAsync()
+    {
+        var entities = await _catalogImageRepository.ListAllAsync();
+        return entities.Select(e => e.MapToBaseResponse()).ToList();
+    }
+}
+
+public class ListCatalogImageByIdUseCase: IListCatalogImageByIdUseCase
+{
+    private readonly ICatalogImageRepository _catalogImageRepository;
+
+    public ListCatalogImageByIdUseCase(ICatalogImageRepository catalogImageRepository)
+    {
+        _catalogImageRepository = catalogImageRepository;
+    }
+
+    public async Task<BaseCatalogImageResponse> ExecuteAsync(Guid id)
+    {
+        var entity = await _catalogImageRepository.ListByIdAsync(id);
+        if (entity == null)
+        {
+            throw new Exception("Entity with id {id} not found");
+        }
+        return entity.MapToBaseResponse();
+    }
+}
+
+public class DeleteCatalogImageUseCase: IDeleteCatalogImageUseCase
+{
+    private readonly ICatalogImageRepository _catalogImageRepository;
+    private readonly ICatalogImageStorageService _catalogImageStorageService;
+
+    public DeleteCatalogImageUseCase(ICatalogImageRepository catalogImageRepository, ICatalogImageStorageService catalogImageStorageService)
+    {
+        _catalogImageRepository = catalogImageRepository;
+        _catalogImageStorageService = catalogImageStorageService;
+    }
+
+    public async Task ExecuteAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var entity = await _catalogImageRepository.ListByIdAsync(id);
+        if (entity == null)
+        {
+            throw new Exception("Entity with id {id} not found");
+        }
+        await _catalogImageStorageService.DeleteAsync(entity.BlobName, cancellationToken);
+        await _catalogImageRepository.DeleteAsync(entity);
     }
 }

@@ -52,12 +52,10 @@ public class ListProductByIdUseCase: IListProductByIdUseCase
     public async Task<BaseProductResponse> ExecuteAsync(Guid id)
     {
         var entity = await _repository.ListByIdAsync(id);
-
         if (entity == null)
         {
-            throw new Exception("Entity test with id {id} not found");
+            throw new Exception("Entity with id {id} not found");
         }
-
         return entity.MapToBaseResponse();
     }
 }
@@ -77,7 +75,7 @@ public class UpdateProductUseCase: IUpdateProductUseCase
 
         if (entity == null)
         {
-            throw new Exception("Entity test with id {id} not found");
+            throw new Exception("Entity with id {id} not found");
         }
 
         var (shouldUpdate, partitionKeyWillChange, previousPartitionKey) = entity.MergeWithUpdateRequest(request);
@@ -113,7 +111,7 @@ public class DeleteProductUseCase: IDeleteProductUseCase
         var entity = await _repository.ListByIdAsync(id);
         if (entity == null)
         {
-            throw new Exception("Entity test with id {id} not found");
+            throw new Exception("Entity with id {id} not found");
         }
         await _repository.DeleteAsync(entity);
     }

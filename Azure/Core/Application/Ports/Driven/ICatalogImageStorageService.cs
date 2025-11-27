@@ -2,17 +2,15 @@ using Core.Domain.Responses;
 
 namespace Core.Application.Ports.Driven;
 
-public interface IStorageService
+public interface ICatalogImageStorageService
 {
     Task<(string blobName, string blobUrl)> UploadAsync(
-        string containerName,
         Stream content,
         string blobName,
         string contentType,
         CancellationToken cancellationToken = default);
 
     Task DeleteAsync(
-        string containerName,
         string blobName,
         CancellationToken cancellationToken = default);
 }
