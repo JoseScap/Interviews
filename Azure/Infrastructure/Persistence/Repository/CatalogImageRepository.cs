@@ -5,30 +5,30 @@ using Microsoft.Azure.Cosmos;
 
 namespace Infrastructure.Persistence.Repository;
 
-public class ProductRepository : IProductRepository
+public class CatalogImageRepository : ICatalogImageRepository
 {
     private readonly DbContext _dbContext;
 
-    public ProductRepository(DbContext dbContext)
+    public CatalogImageRepository(DbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
-    public async Task<Product> SaveAsync(Product entity)
+    public async Task<CatalogImage> SaveAsync(CatalogImage entity)
     {
-        var response = await _dbContext.ProductContainer.UpsertItemAsync(
+        var response = await _dbContext.CatalogImageContainer.UpsertItemAsync(
             item: entity,
             partitionKey: new(entity.ProductCategory)
         );
         return response.Resource;
     }
 
-    public async Task<List<Product>> ListAllAsync()
+    public async Task<List<CatalogImage>> ListAllAsync()
     {
         var query = new QueryDefinition("SELECT * FROM c");
-        var iterator = _dbContext.ProductContainer.GetItemQueryIterator<Product>(query);
+        var iterator = _dbContext.CatalogImageContainer.GetItemQueryIterator<CatalogImage>(query);
         
-        var results = new List<Product>();
+        var results = new List<CatalogImage>();
         while (iterator.HasMoreResults)
         {
             var response = await iterator.ReadNextAsync();
@@ -38,13 +38,13 @@ public class ProductRepository : IProductRepository
         return results;
     }
 
-    public async Task<Product?> ListByIdAsync(Guid id)
+    public async Task<CatalogImage?> ListByIdAsync(Guid id)
     {
         var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id")
             .WithParameter("@id", id);
-        var iterator = _dbContext.ProductContainer.GetItemQueryIterator<Product>(query);
+        var iterator = _dbContext.CatalogImageContainer.GetItemQueryIterator<CatalogImage>(query);
         
-        Product? result = null;
+        CatalogImage? result = null;
 
         while (iterator.HasMoreResults)
         {
@@ -55,14 +55,14 @@ public class ProductRepository : IProductRepository
         return result;
     }
 
-    public async Task<Product?> ListByIdAndPartitionKeyAsync(Guid id, string category)
+    public async Task<CatalogImage?> ListByIdAndPartitionKeyAsync(Guid id, string category)
     {
         var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id AND c.category = @category")
             .WithParameter("@id", id)
             .WithParameter("@category", category);
-        var iterator = _dbContext.ProductContainer.GetItemQueryIterator<Product>(query);
+        var iterator = _dbContext.CatalogImageContainer.GetItemQueryIterator<CatalogImage>(query);
         
-        Product? result = null;
+        CatalogImage? result = null;
 
         while (iterator.HasMoreResults)
         {
@@ -73,18 +73,18 @@ public class ProductRepository : IProductRepository
         return result;
     }
 
-    public async Task<Product> UpdateAsync(Product entity)
+    public async Task<CatalogImage> UpdateAsync(CatalogImage entity)
     {
-        var response = await _dbContext.ProductContainer.UpsertItemAsync(
+        var response = await _dbContext.CatalogImageContainer.UpsertItemAsync(
             item: entity,
             partitionKey: new(entity.ProductCategory)
         );
         return response.Resource;
     }
 
-    public async Task DeleteAsync(Product entity)
+    public async Task DeleteAsync(CatalogImage entity)
     {
-        await _dbContext.ProductContainer.DeleteItemAsync<Product>(
+        await _dbContext.CatalogImageContainer.DeleteItemAsync<CatalogImage>(
             id: entity.Id,
             partitionKey: new(entity.ProductCategory)
         );

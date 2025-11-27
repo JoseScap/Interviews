@@ -19,7 +19,7 @@ public class StorageService : IStorageService
         _storageContext = storageContext;
     }
 
-    public async Task<BaseCatalogResponse> UploadAsync(
+    public async Task<(string blobName, string blobUrl)> UploadAsync(
         string containerName,
         Stream content,
         string blobName,
@@ -62,26 +62,7 @@ public class StorageService : IStorageService
 
         await blobClient.UploadAsync(content, uploadOptions, cancellationToken);
 
-        return new BaseCatalogResponse(blobClient.Name, blobClient.Uri.ToString());
-    }
-    public async Task<List<BaseCatalogResponse>> GetAllBlobsAsync(string containerName, CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(containerName))
-        {
-            throw new ArgumentException("Container name is required.", nameof(containerName));
-        }
-
-        var containerClient = _storageContext.GetContainer(containerName);
-        var responses = new List<BaseCatalogResponse>();
-
-        await foreach (var blobItem in containerClient.GetBlobsAsync(cancellationToken: cancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var blobClient = containerClient.GetBlobClient(blobItem.Name);
-            responses.Add(new BaseCatalogResponse(blobClient.Name, blobClient.Uri.ToString()));
-        }
-
-        return responses;
+        return (blobClient.Name, blobClient.Uri.ToString());
     }
 
     public async Task DeleteAsync(

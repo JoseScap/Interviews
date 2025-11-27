@@ -10,6 +10,7 @@ public class DbContext
     public CosmosClient Client;
     public Database Database { get; private set; } = null!;
     public Container ProductContainer { get; private set; } = null!;
+    public Container CatalogImageContainer { get; private set; } = null!;
 
     public DbContext(KeyVaultContext keyVault)
     {
@@ -21,7 +22,10 @@ public class DbContext
     {
         Database = await Client.CreateDatabaseIfNotExistsAsync("Database");
 
-        var productContainerProps = new ContainerProperties("Product", Product.PartitionKeyPath);
+        var productContainerProps = new ContainerProperties(Product.ContainerName, Product.PartitionKeyPath);
         ProductContainer = await Database.CreateContainerIfNotExistsAsync(productContainerProps);
+    
+        var catalogImageContainerProps = new ContainerProperties(CatalogImage.ContainerName, CatalogImage.PartitionKeyPath);
+        CatalogImageContainer = await Database.CreateContainerIfNotExistsAsync(catalogImageContainerProps);
     }
 }
